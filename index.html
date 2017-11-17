@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<meta charset="utf-8">
+<head>
+<script src="d3.v4.min.js"></script>
+</head>
+<style type="text/css">
+body{
+	max-width: 900px;
+	margin:auto;
+	/**background:#DDE9EF;**/
+}
+#countries {
+  stroke: #8EA4B1;
+  stroke-width: 0.5px;
+  fill: #8EA4B1;
+}
+
+#countryTooltipSetUP {
+  position: absolute;
+  width: auto;
+  height: auto;
+  padding: 10px;
+  background-color: rgb(252,252,252);
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
+  -webkit-box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4);
+  -moz-box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4);
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+	max-width: 33%;
+}
+
+#countryTooltipSetUP.hidden {
+  display: none;
+}
+
+#countryTooltipSetUP p {
+  margin: 0;
+  font-family: sans-serif;
+  font-size: 10px;
+  line-height: 12px;
+}
+
+
+
+.button, .sharebutton, .storybutton, .sortbutton {
+    -moz-box-shadow: inset 0px 0px 0px 0px #bbdaf7;
+    -webkit-box-shadow: inset 0px 0px 0px 0px #bbdaf7;
+    box-shadow: inset 0px 0px 0px 0px #bbdaf7;
+    border: 0px;
+    font-size: 12px;
+}
+
+
+.storybutton, .sharebutton {
+    padding: 3px 10px;
+}
+.button, .sharebutton, .sortbutton, .roundBorders {
+    -moz-border-radius-topleft: 2px;
+    -moz-border-radius-topright: 2px;
+    -moz-border-radius-bottomleft: 2px;
+    -moz-border-radius-bottomright: 2px;
+    -webkit-border-top-left-radius: 2px;
+    -webkit-border-top-right-radius: 2px;
+    -webkit-border-bottom-left-radius: 2px;
+    -webkit-border-bottom-right-radius: 2px;
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+    border-bottom-left-radius: 2px;
+    border-bottom-right-radius: 2px;
+}
+
+#shareContainer{
+  visibility: hidden;
+}
+.resourceContent {
+    background-color: #E9F2F6;
+    padding-right: 5%;
+    padding-left: 3%;
+    padding-top: 15px;
+    height: auto;
+    overflow: auto;
+}
+.resourceContainer {
+    position: fixed;
+    top: 5%;
+    height: auto;
+    padding: 20px;
+    margin-left:5%;
+    /**bottom: 40px;**/
+    width: auto;
+    background-color: #E9F2F6;
+    z-index: 15;
+    color: black;
+    -webkit-box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4);
+    -moz-box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4);
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+}
+  .closeButtonAbout {
+    cursor: pointer;
+    position: absolute;
+    right: 5%;
+    top: 10px;
+  }
+</style>
+<body>
+<div id="map"></div>
+<div id="countryTooltipSetUP" class="hidden">
+    <p><span id="countryTooltip">All</span></i>
+</div>
+
+<div id="shareContainer" class="resourceContainer" style="display: block;">
+        <div id="shareContent" class="resourceContent">
+            <div id="closeShare" class="sharebutton closeButtonAbout">x</div>
+            <div id="countryItem">CountryName</div>
+            <br/>
+
+            <a id="english" href="" target="_blank">brochure (local)</a>
+            </br>
+            <a id="local"  href="" target="_blank">brochure (English)</a>
+            </br>
+            <a id="belExcep"  href="" target="_blank"></a>
+        </div>
+</div>
+
+</body>
+<script>
+
+var urlDatabase=[];
+d3.csv("url.csv",function(error, data){
+	data.forEach(function(d){
+		urlDatabase.push(d);
+	})
+
+})
+
+ 	var width = document.getElementById("map").offsetWidth,
+    height_usage=  width;
+    height= width;
+	// SVG for usage bubbles
+	var map= d3.select("#map")
+      .append('svg')
+      .attr("width", width)
+      .attr("height",height_usage/2); //previously 2*height_usage/2
+
+    map.append("rect")
+	    .attr("x",0)
+	    .attr("y",0)
+	    .attr("width",width)
+	    .attr("height",height_usage)	//previously 2*height_usage/2
+	    .attr("fill","#DDE9EF");
+	    //.attr("fill","#DDE9EF")
+
+
+	var projection = d3.geoStereographic()
+	            .center([12, 35])  //previously [0, 41]
+	            .scale(width/0.85) //previously scale(width/2.2)
+	            .translate([(width) / 2, height_usage/2])
+	        	.precision(.1);
+
+	var path = d3.geoPath()
+                   .projection(projection);
+
+    var europeMap=map.append("g")
+    	.attr("class", "Europe")
+    	.attr("id","countries")
+      	.attr('width', width)
+      	.attr('height', height_usage);
+
+
+
+    d3.json("Europe_ELS.json", function(error, worldData) {
+            europeMap.selectAll(".Europe")
+            .data(worldData.features)
+            .enter().append("path")
+            .attr("class", function(d){ return d.properties.ISO3_CODE; })
+            .attr("d", path)
+            .on("mouseover", function(d) {
+          		d3.select(this).style("opacity",0.5);
+
+          		var xPosition = d3.event.pageX+10;
+							var yPosition = d3.event.pageY+10;
+
+							var countryLabel = decodeURIComponent(d.properties.NAME_ENGL) ;
+
+							//Update the tooltip position and value
+							d3.select("#countryTooltipSetUP")
+						        .style("left", xPosition + "px")
+						        .style("top", yPosition + "px") 
+						        .select("#countryTooltip")
+						        .text(countryLabel);
+
+							d3.select("#countryTooltipSetUP").classed("hidden", false);
+						})
+						.on("mouseout", function(d) {
+							
+                    		d3.select(this).style("opacity",1);
+
+
+							d3.select("#countryTooltipSetUP").classed("hidden", true);
+						})
+						.on("click",function(d){	
+						
+              var urlEnglish;
+              var urlLocal;
+              var textEnglish;
+              var textLocal;
+              urlDatabase.forEach(function(k){
+                if(k.ISO==d.properties.ISO3_CODE){
+                  urlEnglish=k.URL_EN;
+                  urlLocal=k.URL_LOCAL;
+                  textEnglish=k.LIBELLE_EN;
+                  textLocal=k.LIBELLE_LOCAL;
+
+                  }
+              })
+              //window.open(urltodisplay,"_blank")	
+
+              document.getElementById("english").href=urlEnglish; 
+              document.getElementById("local").href=urlLocal; 
+
+
+              document.getElementById("english").innerHTML=textEnglish; 
+              document.getElementById("local").innerHTML=textLocal; 
+
+
+              var countryLabel = decodeURIComponent(d.properties.NAME_ENGL) ;
+              document.getElementById("countryItem").innerHTML=countryLabel ;
+
+
+              d3.select('#shareContainer').style('visibility', "visible")
+
+							// Exception BELGIUM
+              if(d.properties.ISO3_CODE=="BEL"){
+
+              document.getElementById("belExcep").href="http://dx.doi.org/10.1787/9789264285064-nl"; 
+
+              document.getElementById("belExcep").innerHTML='in Dutch'; 
+              }
+              else{
+
+              document.getElementById("belExcep").href=urlLocal; 
+
+              document.getElementById("belExcep").innerHTML=''; 
+              }
+
+              //document.getElementById("abc").href="xyz.php"; 
+						});
+
+
+            europeMap.append("circle")
+              .attr("cx",projection([33.6,35.3])[0])
+              .attr("cy",projection([33.6,35.3])[1])
+              .attr("r", "9px")
+              .style("fill","#8EA4B1")
+              .style("stroke","#BBC8D0")
+              .on("mouseover", function(d) {
+                d3.select(this).style("opacity",0.5);
+
+                var xPosition = d3.event.pageX+10;
+                var yPosition = d3.event.pageY+10;
+
+                var countryLabel = "CYPRUS" ;
+
+                //Update the tooltip position and value
+                d3.select("#countryTooltipSetUP")
+                      .style("left", xPosition + "px")
+                      .style("top", yPosition + "px") 
+                      .select("#countryTooltip")
+                      .text(countryLabel);
+
+                d3.select("#countryTooltipSetUP").classed("hidden", false);
+              })
+              .on("mouseout", function(d) {
+                
+                          d3.select(this).style("opacity",1);
+
+
+                d3.select("#countryTooltipSetUP").classed("hidden", true);
+              })
+              .on("click",function(d){  
+            
+                var urlEnglish;
+                var urlLocal;
+                var textEnglish;
+                var textLocal;
+                urlDatabase.forEach(function(k){
+                  if(k.ISO=="CYP"){
+                    urlEnglish=k.URL_EN;
+                    urlLocal=k.URL_LOCAL;
+                    textEnglish=k.LIBELLE_EN;
+                    textLocal=k.LIBELLE_LOCAL;
+
+                    }
+                }) 
+
+              document.getElementById("english").href=urlEnglish; 
+              document.getElementById("local").href=urlLocal; 
+
+
+              document.getElementById("english").innerHTML=textEnglish; 
+              document.getElementById("local").innerHTML=textLocal; 
+
+
+              var countryLabel = "CYPRUS" ;
+              document.getElementById("countryItem").innerHTML=countryLabel ;
+
+
+              d3.select('#shareContainer').style('visibility', "visible")
+
+            });
+
+    });
+
+    d3.select('#closeShare')
+    .on('click', function () {
+        // Remove active class from all buttons
+        d3.select('#shareContainer').style('visibility', "hidden")
+    });
+
+  </script>
