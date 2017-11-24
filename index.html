@@ -114,7 +114,8 @@ body{
 <div id="shareContainer" class="resourceContainer" style="display: block;">
         <div id="shareContent" class="resourceContent">
             <div id="closeShare" class="sharebutton closeButtonAbout">x</div>
-            <div id="countryItem">CountryName</div>
+            <img id="countryFlag" src="https://www.compareyourcountry.org/flags.png?cr=USA"></img>
+            <div id="countryItem">CountryName </div>
             <br/>
 
             <a id="english" href="" target="_blank">brochure (local)</a>
@@ -230,6 +231,10 @@ d3.csv("url.csv",function(error, data){
               document.getElementById("countryItem").innerHTML=countryLabel ;
 
 
+              var countryURL="https://www.compareyourcountry.org/flags.png?cr="+d.properties.ISO3_CODE;
+              document.getElementById("countryFlag").src= countryURL;
+
+
               d3.select('#shareContainer').style('visibility', "visible")
 
 							// Exception BELGIUM
@@ -307,6 +312,9 @@ d3.csv("url.csv",function(error, data){
               var countryLabel = "CYPRUS" ;
               document.getElementById("countryItem").innerHTML=countryLabel ;
 
+
+              var countryURL="https://www.compareyourcountry.org/flags.png?cr=CYP";
+              document.getElementById("countryFlag").src= countryURL;
 
               d3.select('#shareContainer').style('visibility', "visible")
 
