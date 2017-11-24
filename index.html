@@ -231,7 +231,7 @@ d3.csv("url.csv",function(error, data){
               document.getElementById("countryItem").innerHTML=countryLabel ;
 
 
-              var countryURL="https://www.compareyourcountry.org/flags.png?cr="+d.properties.ISO3_CODE;
+              var countryURL="flags/"+d.properties.ISO3_CODE+".png";
               document.getElementById("countryFlag").src= countryURL;
 
 
@@ -313,7 +313,7 @@ d3.csv("url.csv",function(error, data){
               document.getElementById("countryItem").innerHTML=countryLabel ;
 
 
-              var countryURL="https://www.compareyourcountry.org/flags.png?cr=CYP";
+              var countryURL="flags/CYP.png";
               document.getElementById("countryFlag").src= countryURL;
 
               d3.select('#shareContainer').style('visibility', "visible")
